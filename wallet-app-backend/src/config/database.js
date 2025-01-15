@@ -1,9 +1,8 @@
 import mongoose from 'mongoose'
-import { config } from './env.js'
 
 export const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(config.MONGODB_URI)
+    const conn = await mongoose.connect(`${process.env.MONGODB_URI}/wallet-app`)
     console.log(`MongoDB Connected: ${conn.connection.host}`)
   } catch (error) {
     console.error(`Error: ${error.message}`)
