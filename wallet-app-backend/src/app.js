@@ -32,6 +32,11 @@ app.use('/api/accounts', accountRoutes)
 app.use('/api/categories', categoryRoutes)
 app.use('/api/transactions', transactionRoutes)
 
+// Test route
+app.get("/", (req, res) => {
+    res.send("API Working");
+  });
+
 // Error handler
 app.use(errorHandler)
 
