@@ -6,7 +6,9 @@ import TransactionFilters from '../components/Transactions/TransactionFilters'
 import TransactionStats from '../components/Transactions/TransactionStats'
 import Modal from '../components/UI/Modal'
 import PageLoader from '../components/UI/PageLoader'
+import ExportButton from '../components/UI/ExportButton'
 import { useApiRequest } from '../hooks/useApiRequest'
+import { exportToExcel, exportToCSV, prepareTransactionData } from '../utils/exportData'
 
 function Transactions() {
   const [transactionsData, setTransactionsData] = useState([])
@@ -75,6 +77,15 @@ function Transactions() {
     setFilteredTransactions(filtered)
   }
 
+  const handleExport = (type) => {
+    const data = prepareTransactionData(filteredTransactions)
+    if (type === 'excel') {
+      exportToExcel(data, 'transactions')
+    } else {
+      exportToCSV(data, 'transactions')
+    }
+  }
+
   if (loading) {
     return <PageLoader />
   }
@@ -83,12 +94,15 @@ function Transactions() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
-        >
-          Add Transaction
-        </button>
+        <div className="flex space-x-4">
+          <ExportButton onExport={handleExport} />
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+          >
+            Add Transaction
+          </button>
+        </div>
       </div>
 
       <TransactionStats transactions={filteredTransactions} />
