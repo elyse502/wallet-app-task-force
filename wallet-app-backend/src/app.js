@@ -10,6 +10,7 @@ dotenv.config()
 const authRoutes = require('./routes/auth')
 const accountRoutes = require('./routes/accounts')
 const categoryRoutes = require('./routes/categories')
+const transactionRoutes = require('./routes/transactions')
 
 // Middleware imports
 const { errorHandler } = require('./middleware/errorHandler')
@@ -29,6 +30,7 @@ app.use(express.json())
 app.use('/api/auth', authRoutes)
 app.use('/api/accounts', accountRoutes)
 app.use('/api/categories', categoryRoutes)
+app.use('/api/transactions', transactionRoutes)
 
 // Error handler
 app.use(errorHandler)
