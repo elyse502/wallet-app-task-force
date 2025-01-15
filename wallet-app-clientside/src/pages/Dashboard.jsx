@@ -1,6 +1,8 @@
 import AccountsSummary from '../components/Dashboard/AccountsSummary'
 import RecentTransactions from '../components/Dashboard/RecentTransactions'
 import TransactionCharts from '../components/Dashboard/TransactionCharts'
+import BudgetProgress from '../components/Budget/BudgetProgress'
+import BudgetSettings from '../components/Budget/BudgetSettings'
 
 function Dashboard() {
   return (
@@ -9,11 +11,16 @@ function Dashboard() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <AccountsSummary />
-        <RecentTransactions />
+        <BudgetProgress />
       </div>
       
-      <div className="w-full">
+      <div className="grid grid-cols-1 gap-6">
+        <BudgetSettings />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
         <TransactionCharts />
+        <RecentTransactions />
       </div>
     </div>
   )
