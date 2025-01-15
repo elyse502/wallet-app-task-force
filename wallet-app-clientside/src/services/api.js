@@ -43,7 +43,7 @@ export const categories = {
 
 // Transactions API
 export const transactions = {
-  getAll: () => api.get('/transactions'),
+  getAll: (params) => api.get('/transactions', { params }),
   create: (transactionData) => api.post('/transactions', transactionData),
   update: (id, transactionData) => api.put(`/transactions/${id}`, transactionData),
   delete: (id) => api.delete(`/transactions/${id}`),

@@ -1,81 +1,83 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useApiRequest } from '../hooks/useApiRequest'
 import { transactions } from '../services/api'
-import ReportSummary from '../components/Reports/ReportSummary'
-import CategoryChart from '../components/Reports/CategoryChart'
-import MonthlyTrend from '../components/Reports/MonthlyTrend'
-import TransactionFilters from '../components/Transactions/TransactionFilters'
+import TransactionCharts from '../components/Dashboard/TransactionCharts'
+import DateRangePicker from '../components/Reports/DateRangePicker'
+import ReportTable from '../components/Reports/ReportTable'
+import { exportToExcel, exportToCSV } from '../utils/exportData'
 
 function Reports() {
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    endDate: new Date()
+  })
   const [transactionsData, setTransactionsData] = useState([])
-  const [filteredTransactions, setFilteredTransactions] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { execute, loading } = useApiRequest()
 
-  const fetchTransactions = async () => {
+  const handleDateRangeChange = async (newRange) => {
     try {
-      const response = await transactions.getAll()
+      const response = await execute(() => 
+        transactions.getAll({
+          startDate: newRange.startDate.toISOString(),
+          endDate: newRange.endDate.toISOString()
+        })
+      )
       setTransactionsData(response.data)
-      setFilteredTransactions(response.data)
+      setDateRange(newRange)
     } catch (error) {
-      console.error('Error fetching transactions:', error)
-    } finally {
-      setLoading(false)
+      console.error('Failed to fetch transactions:', error)
     }
   }
 
-  useEffect(() => {
-    fetchTransactions()
-  }, [])
+  const handleExport = (type) => {
+    const data = transactionsData.map(t => ({
+      Date: new Date(t.date).toLocaleDateString(),
+      Description: t.description,
+      Category: t.category?.name || 'Uncategorized',
+      Account: t.account?.name,
+      Type: t.type,
+      Amount: t.amount
+    }))
 
-  const handleFilterChange = (filters) => {
-    let filtered = [...transactionsData]
-
-    if (filters.startDate && filters.endDate) {
-      filtered = filtered.filter((transaction) => {
-        const transactionDate = new Date(transaction.date)
-        return (
-          transactionDate >= new Date(filters.startDate) &&
-          transactionDate <= new Date(filters.endDate)
-        )
-      })
+    if (type === 'excel') {
+      exportToExcel(data, `transactions-${dateRange.startDate.toISOString().split('T')[0]}`)
+    } else {
+      exportToCSV(data, `transactions-${dateRange.startDate.toISOString().split('T')[0]}`)
     }
-
-    if (filters.type) {
-      filtered = filtered.filter((transaction) => transaction.type === filters.type)
-    }
-
-    if (filters.category) {
-      filtered = filtered.filter(
-        (transaction) => transaction.category?._id === filters.category
-      )
-    }
-
-    if (filters.account) {
-      filtered = filtered.filter(
-        (transaction) => transaction.account?._id === filters.account
-      )
-    }
-
-    setFilteredTransactions(filtered)
-  }
-
-  if (loading) {
-    return <div>Loading reports...</div>
   }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Financial Reports</h1>
-
-      <TransactionFilters onFilterChange={handleFilterChange} />
-
-      <ReportSummary transactions={filteredTransactions} />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <CategoryChart transactions={filteredTransactions} type="expense" />
-        <CategoryChart transactions={filteredTransactions} type="income" />
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
+        <div className="flex space-x-4">
+          <button
+            onClick={() => handleExport('excel')}
+            className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
+          >
+            Export to Excel
+          </button>
+          <button
+            onClick={() => handleExport('csv')}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+          >
+            Export to CSV
+          </button>
+        </div>
       </div>
 
-      <MonthlyTrend transactions={filteredTransactions} />
+      <DateRangePicker
+        startDate={dateRange.startDate}
+        endDate={dateRange.endDate}
+        onChange={handleDateRangeChange}
+      />
+
+      <TransactionCharts transactions={transactionsData} />
+      
+      <ReportTable 
+        transactions={transactionsData}
+        loading={loading}
+      />
     </div>
   )
 }
