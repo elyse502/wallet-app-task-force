@@ -21,9 +21,32 @@ const userSchema = new mongoose.Schema({
     minlength: 6,
     select: false
   },
-  budgetLimit: {
-    type: Number,
-    default: 0
+  budget: {
+    monthlyLimit: {
+      type: Number,
+      default: 0
+    },
+    categoryLimits: [{
+      category: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        required: true
+      },
+      amount: {
+        type: Number,
+        required: true
+      }
+    }],
+    alerts: {
+      enabled: {
+        type: Boolean,
+        default: true
+      },
+      threshold: {
+        type: Number,
+        default: 80 // percentage
+      }
+    }
   }
 }, {
   timestamps: true
