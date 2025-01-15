@@ -1,52 +1,60 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { accounts } from '../services/api'
+import AccountList from '../components/Accounts/AccountList'
 import AccountForm from '../components/Accounts/AccountForm'
+import Modal from '../components/UI/Modal'
 
 function Accounts() {
-  const [showForm, setShowForm] = useState(false)
-  const [accounts, setAccounts] = useState([
-    { id: 1, name: 'Bank Account', type: 'bank', balance: 3500 },
-    { id: 2, name: 'Cash Wallet', type: 'cash', balance: 500 },
-    { id: 3, name: 'Mobile Money', type: 'mobile', balance: 1000 },
-  ])
+  const [accountsData, setAccountsData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showAddModal, setShowAddModal] = useState(false)
 
-  const handleAddAccount = (newAccount) => {
-    setAccounts([
-      ...accounts,
-      {
-        id: accounts.length + 1,
-        ...newAccount
-      }
-    ])
+  const fetchAccounts = async () => {
+    try {
+      const response = await accounts.getAll()
+      setAccountsData(response.data)
+    } catch (error) {
+      console.error('Error fetching accounts:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchAccounts()
+  }, [])
+
+  if (loading) {
+    return <div>Loading accounts...</div>
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">Accounts</h2>
+        <h1 className="text-2xl font-bold text-gray-900">Accounts</h1>
         <button
-          onClick={() => setShowForm(true)}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+          onClick={() => setShowAddModal(true)}
+          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
         >
           Add Account
         </button>
       </div>
 
-      {showForm && (
-        <AccountForm
-          onSubmit={handleAddAccount}
-          onClose={() => setShowForm(false)}
-        />
-      )}
+      <AccountList accountsData={accountsData} onAccountChange={fetchAccounts} />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {accounts.map((account) => (
-          <div key={account.id} className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-medium">{account.name}</h3>
-            <p className="text-gray-500 capitalize">{account.type}</p>
-            <p className="text-2xl font-bold mt-2">${account.balance}</p>
-          </div>
-        ))}
-      </div>
+      <Modal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title="Add New Account"
+      >
+        <AccountForm
+          onSuccess={() => {
+            setShowAddModal(false)
+            fetchAccounts()
+          }}
+          onCancel={() => setShowAddModal(false)}
+        />
+      </Modal>
     </div>
   )
 }
