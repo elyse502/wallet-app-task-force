@@ -3,6 +3,7 @@ import { transactions } from '../services/api'
 import TransactionList from '../components/Transactions/TransactionList'
 import TransactionForm from '../components/Transactions/TransactionForm'
 import TransactionFilters from '../components/Transactions/TransactionFilters'
+import TransactionStats from '../components/Transactions/TransactionStats'
 import Modal from '../components/UI/Modal'
 import PageLoader from '../components/UI/PageLoader'
 import { useApiRequest } from '../hooks/useApiRequest'
@@ -89,6 +90,8 @@ function Transactions() {
           Add Transaction
         </button>
       </div>
+
+      <TransactionStats transactions={filteredTransactions} />
 
       <TransactionFilters onFilterChange={handleFilterChange} />
 
