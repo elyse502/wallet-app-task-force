@@ -7,13 +7,24 @@ const mongoose = require('mongoose')
 // @access  Private
 const getTransactions = async (req, res) => {
   try {
-    const transactions = await Transaction.find({ user: req.user._id })
-      .populate('category', 'name')
-      .populate('account', 'name')
+    const { startDate, endDate } = req.query
+    const query = { user: req.user.id }
+
+    if (startDate && endDate) {
+      query.date = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      }
+    }
+
+    const transactions = await Transaction.find(query)
+      .populate('category')
+      .populate('account')
       .sort({ date: -1 })
+
     res.json(transactions)
   } catch (error) {
-    res.status(400).json({ message: error.message })
+    res.status(500).json({ message: 'Error fetching transactions' })
   }
 }
 
