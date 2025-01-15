@@ -4,22 +4,23 @@ import TransactionList from '../components/Transactions/TransactionList'
 import TransactionForm from '../components/Transactions/TransactionForm'
 import TransactionFilters from '../components/Transactions/TransactionFilters'
 import Modal from '../components/UI/Modal'
+import PageLoader from '../components/UI/PageLoader'
+import { useApiRequest } from '../hooks/useApiRequest'
 
 function Transactions() {
   const [transactionsData, setTransactionsData] = useState([])
   const [filteredTransactions, setFilteredTransactions] = useState([])
-  const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
+
+  const { execute, loading } = useApiRequest()
 
   const fetchTransactions = async () => {
     try {
-      const response = await transactions.getAll()
+      const response = await execute(() => transactions.getAll())
       setTransactionsData(response.data)
       setFilteredTransactions(response.data)
     } catch (error) {
-      console.error('Error fetching transactions:', error)
-    } finally {
-      setLoading(false)
+      console.error('Failed to fetch transactions:', error)
     }
   }
 
@@ -30,7 +31,6 @@ function Transactions() {
   const handleFilterChange = (filters) => {
     let filtered = [...transactionsData]
 
-    // Apply search filter
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase()
       filtered = filtered.filter(
@@ -75,7 +75,7 @@ function Transactions() {
   }
 
   if (loading) {
-    return <div>Loading transactions...</div>
+    return <PageLoader />
   }
 
   return (
