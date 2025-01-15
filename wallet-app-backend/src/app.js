@@ -8,6 +8,8 @@ dotenv.config()
 
 // Route imports
 const authRoutes = require('./routes/auth')
+const accountRoutes = require('./routes/accounts')
+const categoryRoutes = require('./routes/categories')
 
 // Middleware imports
 const { errorHandler } = require('./middleware/errorHandler')
@@ -25,6 +27,8 @@ app.use(express.json())
 
 // Routes
 app.use('/api/auth', authRoutes)
+app.use('/api/accounts', accountRoutes)
+app.use('/api/categories', categoryRoutes)
 
 // Error handler
 app.use(errorHandler)
