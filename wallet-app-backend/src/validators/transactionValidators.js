@@ -30,7 +30,13 @@ const transactionValidationRules = [
     .notEmpty()
     .withMessage('Account is required')
     .isMongoId()
-    .withMessage('Invalid account ID')
+    .withMessage('Invalid account ID'),
+  body('amount')
+    .isFloat({ min: 0.01 })
+    .withMessage('Amount must be greater than 0'),
+  body('date')
+    .isISO8601()
+    .withMessage('Invalid date format')
 ]
 
 module.exports = {

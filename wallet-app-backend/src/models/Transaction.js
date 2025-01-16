@@ -32,7 +32,17 @@ const transactionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  }
+  },
+  isRecurring: {
+    type: Boolean,
+    default: false
+  },
+  recurringFrequency: {
+    type: String,
+    enum: ['daily', 'weekly', 'monthly', 'yearly'],
+    required: function() { return this.isRecurring }
+  },
+  nextDueDate: Date
 }, {
   timestamps: true
 })

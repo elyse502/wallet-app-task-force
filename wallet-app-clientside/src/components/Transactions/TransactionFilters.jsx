@@ -15,6 +15,9 @@ function TransactionFilters({ onFilterChange }) {
   const [accountsList, setAccountsList] = useState([])
   const [categoriesList, setCategoriesList] = useState([])
   const [loading, setLoading] = useState(true)
+  const [searchText, setSearchText] = useState('')
+  const [sortBy, setSortBy] = useState('date')
+  const [sortOrder, setSortOrder] = useState('desc')
 
   useEffect(() => {
     const fetchFilterData = async () => {

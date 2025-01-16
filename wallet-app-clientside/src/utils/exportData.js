@@ -56,4 +56,9 @@ export const exportToPDF = (data, fileName) => {
   
   // Save PDF
   doc.save(`${fileName}-${format(new Date(), 'yyyy-MM-dd')}.pdf`)
+}
+
+export const exportToJSON = (data, fileName) => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  saveAs(blob, `${fileName}-${format(new Date(), 'yyyy-MM-dd')}.json`)
 } 

@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { transactions } from '../../services/api'
@@ -91,74 +92,87 @@ function BudgetProgress() {
   }
 
   if (loading) {
-    return <div className="animate-pulse h-48 bg-gray-200 rounded-lg"></div>
+    return <div key="loading-state" className="animate-pulse h-48 bg-gray-200 rounded-lg"></div>
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow space-y-6">
-      <div>
-        <h2 className="text-xl font-bold text-gray-900">Budget Progress</h2>
-        <p className="text-sm text-gray-500">Current month's spending overview</p>
-      </div>
+    <div className="bg-white p-6 rounded-lg shadow">
+      <div className="flex flex-col gap-6">
+        {[
+          // Header Section
+          <Fragment key="header">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Budget Progress</h2>
+              <p className="text-sm text-gray-500">Current month's spending overview</p>
+            </div>
+          </Fragment>,
 
-      {/* Overall Budget Progress */}
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm">
-          <span className="font-medium text-gray-700">Overall Budget</span>
-          <span className="text-gray-500">
-            ${monthlySpending.toFixed(2)} / ${user?.budget?.monthlyLimit?.toFixed(2) || '0.00'}
-          </span>
-        </div>
-        <div className="h-2 bg-gray-200 rounded-full">
-          <div
-            className={`h-2 rounded-full transition-all ${getProgressColor(
-              calculateProgress(monthlySpending, user?.budget?.monthlyLimit)
-            )}`}
-            style={{
-              width: `${calculateProgress(
-                monthlySpending,
-                user?.budget?.monthlyLimit
-              )}%`
-            }}
-          ></div>
-        </div>
-      </div>
-
-      {/* Category Budget Progress */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium text-gray-900">Category Budgets</h3>
-        {user?.budget?.categoryLimits?.map((catLimit) => {
-          const spent = categorySpending[catLimit.category] || 0
-          const progress = calculateProgress(spent, catLimit.amount)
-          const category = catLimit.category
-
-          return (
-            <div key={category._id} className="space-y-2">
+          // Overall Budget Progress Section
+          <Fragment key="overall-budget">
+            <div className="flex flex-col gap-2">
               <div className="flex justify-between text-sm">
-                <span className="font-medium text-gray-700">
-                  {category.name}
-                </span>
+                <span className="font-medium text-gray-700">Overall Budget</span>
                 <span className="text-gray-500">
-                  ${spent.toFixed(2)} / ${catLimit.amount.toFixed(2)}
+                  ${monthlySpending.toFixed(2)} / ${user?.budget?.monthlyLimit?.toFixed(2) || '0.00'}
                 </span>
               </div>
               <div className="h-2 bg-gray-200 rounded-full">
                 <div
-                  className={`h-2 rounded-full transition-all ${getProgressColor(progress)}`}
-                  style={{ width: `${progress}%` }}
+                  className={`h-2 rounded-full transition-all ${getProgressColor(
+                    calculateProgress(monthlySpending, user?.budget?.monthlyLimit)
+                  )}`}
+                  style={{
+                    width: `${calculateProgress(
+                      monthlySpending,
+                      user?.budget?.monthlyLimit
+                    )}%`
+                  }}
                 ></div>
               </div>
             </div>
-          )
-        })}
-      </div>
+          </Fragment>,
 
-      {/* Alert Messages */}
-      {user?.budget?.alerts?.enabled && monthlySpending >= (user?.budget?.monthlyLimit * (user?.budget?.alerts?.threshold / 100)) && (
-        <div className="p-4 bg-red-50 text-red-700 rounded-md">
-          ⚠️ You have reached {user?.budget?.alerts?.threshold}% of your monthly budget!
-        </div>
-      )}
+          // Category Budgets Section
+          <Fragment key="category-budgets">
+            <div className="flex flex-col gap-4">
+              <h3 className="text-lg font-medium text-gray-900">Category Budgets</h3>
+              {user?.budget?.categoryLimits?.map((catLimit) => {
+                const spent = categorySpending[catLimit.category._id] || 0
+                const progress = calculateProgress(spent, catLimit.amount)
+
+                return (
+                  <div key={catLimit.category._id} className="flex flex-col gap-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium text-gray-700">
+                        {catLimit.category.name}
+                      </span>
+                      <span className="text-gray-500">
+                        ${spent.toFixed(2)} / ${catLimit.amount.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="h-2 bg-gray-200 rounded-full">
+                      <div
+                        className={`h-2 rounded-full transition-all ${getProgressColor(progress)}`}
+                        style={{ width: `${progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </Fragment>,
+
+          // Alert Message Section
+          user?.budget?.alerts?.enabled && 
+          monthlySpending >= (user?.budget?.monthlyLimit * (user?.budget?.alerts?.threshold / 100)) && (
+            <Fragment key="alert">
+              <div className="p-4 bg-red-50 text-red-700 rounded-md">
+                ⚠️ You have reached {user?.budget?.alerts?.threshold}% of your monthly budget!
+              </div>
+            </Fragment>
+          )
+        ].filter(Boolean)}
+      </div>
     </div>
   )
 }
