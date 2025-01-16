@@ -4,7 +4,11 @@ import * as XLSX from 'xlsx'
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
 
-export const exportToExcel = (data, fileName) => {
+export const exportToExcel = async (data, fileName) => {
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Error('No data available to export')
+  }
+
   const ws = XLSX.utils.json_to_sheet(data)
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
@@ -13,7 +17,11 @@ export const exportToExcel = (data, fileName) => {
   saveAs(blob, `${fileName}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`)
 }
 
-export const exportToCSV = (data, fileName) => {
+export const exportToCSV = async (data, fileName) => {
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Error('No data available to export')
+  }
+
   const replacer = (key, value) => value === null ? '' : value
   const header = Object.keys(data[0])
   const csv = [
@@ -26,6 +34,10 @@ export const exportToCSV = (data, fileName) => {
 }
 
 export const prepareTransactionData = (transactions) => {
+  if (!Array.isArray(transactions) || transactions.length === 0) {
+    return []
+  }
+
   return transactions.map(transaction => ({
     Date: format(new Date(transaction.date), 'yyyy-MM-dd'),
     Type: transaction.type,
@@ -36,7 +48,11 @@ export const prepareTransactionData = (transactions) => {
   }))
 }
 
-export const exportToPDF = (data, fileName) => {
+export const exportToPDF = async (data, fileName) => {
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Error('No data available to export')
+  }
+
   const doc = new jsPDF()
   
   // Add title
