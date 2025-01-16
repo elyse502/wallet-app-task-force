@@ -23,6 +23,7 @@ export const auth = {
   register: (userData) => api.post('/auth/register', userData),
   login: (credentials) => api.post('/auth/login', credentials),
   getProfile: () => api.get('/auth/profile'),
+  updateProfile: (updates) => api.put('/auth/profile', updates),
 }
 
 // Accounts API

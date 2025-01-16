@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react'
+import { auth } from '../services/api'
 
 const AuthContext = createContext()
 
@@ -15,8 +16,20 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user')
   }
 
+  const updateUser = async (updates) => {
+    try {
+      const response = await auth.updateProfile(updates)
+      const updatedUser = { ...user, ...response.data }
+      setUser(updatedUser)
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+      return updatedUser
+    } catch (error) {
+      throw error
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

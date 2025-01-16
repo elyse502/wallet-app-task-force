@@ -33,7 +33,8 @@ function BudgetSettings() {
       await updateUser({ budget: budgetData })
       toast.success('Budget settings updated successfully')
     } catch (error) {
-      toast.error('Failed to update budget settings')
+      toast.error(error.response?.data?.message || 'Failed to update budget settings')
+      console.error('Budget update error:', error)
     }
   }
 
