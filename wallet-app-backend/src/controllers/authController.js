@@ -78,7 +78,34 @@ const getProfile = async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      budgetLimit: user.budgetLimit
+      budget: user.budget
+    })
+  } catch (error) {
+    res.status(400).json({ message: error.message })
+  }
+}
+
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id)
+    
+    if (req.body.budget) {
+      user.budget = {
+        ...user.budget,
+        ...req.body.budget
+      }
+    }
+    
+    const updatedUser = await user.save()
+    
+    res.json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      budget: updatedUser.budget
     })
   } catch (error) {
     res.status(400).json({ message: error.message })
@@ -88,5 +115,6 @@ const getProfile = async (req, res) => {
 module.exports = {
   register,
   login,
-  getProfile
+  getProfile,
+  updateProfile
 } 
