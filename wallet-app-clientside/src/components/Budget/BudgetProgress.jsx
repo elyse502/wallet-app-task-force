@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { transactions } from '../../services/api'
 import { startOfMonth, endOfMonth } from 'date-fns'
+import { toast } from 'react-toastify'
 
 function BudgetProgress() {
   const { user } = useAuth()
@@ -47,6 +48,36 @@ function BudgetProgress() {
 
     fetchMonthlyTransactions()
   }, [])
+
+  useEffect(() => {
+    if (user?.budget?.alerts?.enabled) {
+      const threshold = user.budget.alerts.threshold
+      const limit = user.budget.monthlyLimit
+      const percentage = (monthlySpending / limit) * 100
+
+      // Warning at 50%
+      if (percentage >= 50 && percentage < threshold) {
+        toast.info(`You've used 50% of your monthly budget`)
+      }
+      
+      // Warning at threshold
+      if (percentage >= threshold) {
+        toast.warning(`Alert: You've reached ${threshold}% of your monthly budget!`)
+      }
+      
+      // Warning at 90%
+      if (percentage >= 90) {
+        toast.error(`Critical: You've used 90% of your monthly budget!`)
+      }
+      
+      // Over budget warning
+      if (percentage > 100) {
+        toast.error(`You've exceeded your monthly budget limit!`, {
+          autoClose: false
+        })
+      }
+    }
+  }, [monthlySpending, user?.budget])
 
   const calculateProgress = (spent, limit) => {
     if (!limit) return 0

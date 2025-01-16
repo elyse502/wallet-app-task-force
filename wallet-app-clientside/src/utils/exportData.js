@@ -1,6 +1,8 @@
 import { format } from 'date-fns'
 import { saveAs } from 'file-saver'
 import * as XLSX from 'xlsx'
+import { jsPDF } from 'jspdf'
+import 'jspdf-autotable'
 
 export const exportToExcel = (data, fileName) => {
   const ws = XLSX.utils.json_to_sheet(data)
@@ -32,4 +34,26 @@ export const prepareTransactionData = (transactions) => {
     Category: transaction.category?.name || 'Uncategorized',
     Account: transaction.account?.name || 'Unknown Account'
   }))
+}
+
+export const exportToPDF = (data, fileName) => {
+  const doc = new jsPDF()
+  
+  // Add title
+  doc.setFontSize(16)
+  doc.text('Transaction Report', 14, 15)
+  doc.setFontSize(10)
+  doc.text(`Generated on ${format(new Date(), 'PPP')}`, 14, 25)
+  
+  // Add table
+  doc.autoTable({
+    startY: 30,
+    head: [Object.keys(data[0])],
+    body: data.map(Object.values),
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [63, 81, 181] }
+  })
+  
+  // Save PDF
+  doc.save(`${fileName}-${format(new Date(), 'yyyy-MM-dd')}.pdf`)
 } 
