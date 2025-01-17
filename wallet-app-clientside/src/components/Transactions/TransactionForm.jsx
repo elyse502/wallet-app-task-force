@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { transactions, accounts, categories } from '../../services/api'
+import { transactions, accounts, categories, budgetSettings } from '../../services/api'
 import { toast } from 'react-toastify'
 
 function TransactionForm({ onSuccess, editData = null, onCancel }) {
@@ -38,17 +38,63 @@ function TransactionForm({ onSuccess, editData = null, onCancel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setLoading(true)
+
     try {
       if (editData) {
         await transactions.update(editData._id, formData)
-        toast.success('Transaction updated successfully')
       } else {
         await transactions.create(formData)
-        toast.success('Transaction created successfully')
+
+        // Check budget after adding an expense
+        if (formData.type === 'expense') {
+          const startDate = new Date()
+          startDate.setDate(1)
+          const [transactionsRes, budgetRes] = await Promise.all([
+            transactions.getAll({ 
+              startDate: startDate.toISOString(),
+              endDate: new Date().toISOString()
+            }),
+            budgetSettings.get()
+          ])
+
+          const monthlyExpenses = transactionsRes.data
+            .filter(t => t.type === 'expense')
+            .reduce((sum, t) => sum + Number(t.amount), 0)
+
+          const { monthlyLimit, categoryLimits } = budgetRes.data
+
+          if (monthlyLimit && monthlyExpenses > monthlyLimit) {
+            toast.error(
+              `🚨 Budget Alert: This transaction puts you over your monthly budget! ($${monthlyExpenses.toFixed(2)}/$${monthlyLimit.toFixed(2)})`,
+              { autoClose: false }
+            )
+          }
+
+          if (formData.category && categoryLimits?.length > 0) {
+            const categoryLimit = categoryLimits.find(cl => cl.categoryId === formData.category)
+            if (categoryLimit) {
+              const categoryExpenses = transactionsRes.data
+                .filter(t => t.type === 'expense' && t.category?._id === formData.category)
+                .reduce((sum, t) => sum + Number(t.amount), 0)
+
+              if (categoryExpenses > categoryLimit.limit) {
+                toast.error(
+                  `🚨 Category Alert: This transaction exceeds the budget for this category! ($${categoryExpenses.toFixed(2)}/$${categoryLimit.limit.toFixed(2)})`,
+                  { autoClose: false }
+                )
+              }
+            }
+          }
+        }
       }
+
+      toast.success(`Transaction ${editData ? 'updated' : 'added'} successfully`)
       onSuccess()
     } catch (error) {
       toast.error(error.response?.data?.message || 'Error saving transaction')
+    } finally {
+      setLoading(false)
     }
   }
 

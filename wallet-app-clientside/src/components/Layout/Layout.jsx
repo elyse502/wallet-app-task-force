@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useState } from 'react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import Footer from './Footer'
+import BudgetAlert from '../Budget/BudgetAlert'
 
 function Layout() {
   const { user, logout } = useAuth()
@@ -24,6 +25,7 @@ function Layout() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
+      <BudgetAlert />
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">

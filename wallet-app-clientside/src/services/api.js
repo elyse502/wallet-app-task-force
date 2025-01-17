@@ -52,8 +52,29 @@ export const transactions = {
 
 // Budget Settings API
 export const budgetSettings = {
-  get: () => api.get('/budget-settings'),
-  update: (data) => api.post('/budget-settings', data)
+  get: async () => {
+    const response = await api.get('/budget-settings')
+    return {
+      data: {
+        ...response.data,
+        monthlyLimit: Number(response.data?.monthlyLimit) || 0,
+        categoryLimits: response.data?.categoryLimits?.map(cl => ({
+          ...cl,
+          limit: Number(cl.limit) || 0
+        })) || []
+      }
+    }
+  },
+  update: async (data) => {
+    const sanitizedData = {
+      monthlyLimit: Number(data.monthlyLimit) || 0,
+      categoryLimits: data.categoryLimits?.map(cl => ({
+        ...cl,
+        limit: Number(cl.limit) || 0
+      })) || []
+    }
+    return api.post('/budget-settings', sanitizedData)
+  }
 }
 
 export default api 
