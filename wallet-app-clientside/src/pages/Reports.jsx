@@ -6,8 +6,9 @@ import ReportSummary from '../components/Reports/ReportSummary'
 import CategoryChart from '../components/Reports/CategoryChart'
 import MonthlyTrend from '../components/Reports/MonthlyTrend'
 import ReportTable from '../components/Reports/ReportTable'
-import { exportToExcel, exportToCSV } from '../utils/exportData'
+import { exportToExcel, exportToCSV, exportToPDF } from '../utils/exportData'
 import PageLoader from '../components/UI/PageLoader'
+import { DocumentIcon, TableCellsIcon, DocumentTextIcon } from '@heroicons/react/24/outline'
 
 function Reports() {
   const [dateRange, setDateRange] = useState({
@@ -42,10 +43,18 @@ function Reports() {
       Amount: t.amount
     }))
 
-    if (type === 'excel') {
-      exportToExcel(data, 'transactions-report')
-    } else {
-      exportToCSV(data, 'transactions-report')
+    switch (type) {
+      case 'excel':
+        exportToExcel(data, 'transactions-report')
+        break
+      case 'csv':
+        exportToCSV(data, 'transactions-report')
+        break
+      case 'pdf':
+        exportToPDF(data, 'transactions-report')
+        break
+      default:
+        break
     }
   }
 
@@ -61,15 +70,24 @@ function Reports() {
         <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row gap-2">
           <button
             onClick={() => handleExport('excel')}
-            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
+            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 inline-flex items-center justify-center gap-2"
           >
-            Export to Excel
+            <TableCellsIcon className="h-5 w-5" />
+            Excel
           </button>
           <button
             onClick={() => handleExport('csv')}
-            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 inline-flex items-center justify-center gap-2"
           >
-            Export to CSV
+            <DocumentTextIcon className="h-5 w-5" />
+            CSV
+          </button>
+          <button
+            onClick={() => handleExport('pdf')}
+            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 inline-flex items-center justify-center gap-2"
+          >
+            <DocumentIcon className="h-5 w-5" />
+            PDF
           </button>
         </div>
       </div>
