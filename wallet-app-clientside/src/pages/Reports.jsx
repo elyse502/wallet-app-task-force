@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { useApiRequest } from '../hooks/useApiRequest'
 import { transactions } from '../services/api'
-import TransactionCharts from '../components/Dashboard/TransactionCharts'
 import DateRangePicker from '../components/Reports/DateRangePicker'
+import ReportSummary from '../components/Reports/ReportSummary'
+import CategoryChart from '../components/Reports/CategoryChart'
+import MonthlyTrend from '../components/Reports/MonthlyTrend'
 import ReportTable from '../components/Reports/ReportTable'
 import { exportToExcel, exportToCSV } from '../utils/exportData'
+import PageLoader from '../components/UI/PageLoader'
 
 function Reports() {
   const [dateRange, setDateRange] = useState({
@@ -40,26 +43,31 @@ function Reports() {
     }))
 
     if (type === 'excel') {
-      exportToExcel(data, `transactions-${dateRange.startDate.toISOString().split('T')[0]}`)
+      exportToExcel(data, 'transactions-report')
     } else {
-      exportToCSV(data, `transactions-${dateRange.startDate.toISOString().split('T')[0]}`)
+      exportToCSV(data, 'transactions-report')
     }
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-        <div className="flex space-x-4">
+      <div className="sm:flex sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
+          <p className="mt-2 text-sm text-gray-700">
+            Analyze your financial activity and export reports
+          </p>
+        </div>
+        <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row gap-2">
           <button
             onClick={() => handleExport('excel')}
-            className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
+            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
           >
             Export to Excel
           </button>
           <button
             onClick={() => handleExport('csv')}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+            className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
           >
             Export to CSV
           </button>
@@ -72,12 +80,22 @@ function Reports() {
         onChange={handleDateRangeChange}
       />
 
-      <TransactionCharts transactions={transactionsData} />
-      
-      <ReportTable 
-        transactions={transactionsData}
-        loading={loading}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ReportSummary transactions={transactionsData} />
+        <MonthlyTrend transactions={transactionsData} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <CategoryChart transactions={transactionsData} type="expense" />
+        <CategoryChart transactions={transactionsData} type="income" />
+      </div>
+
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <ReportTable 
+          transactions={transactionsData}
+          loading={loading}
+        />
+      </div>
     </div>
   )
 }
