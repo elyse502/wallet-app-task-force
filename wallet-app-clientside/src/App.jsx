@@ -8,7 +8,7 @@ function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 flex flex-col">
           <AppRoutes />
           <ToastContainer position="top-right" />
         </div>
