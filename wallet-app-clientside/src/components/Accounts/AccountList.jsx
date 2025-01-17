@@ -36,17 +36,17 @@ function AccountList({ accountsData, onAccountChange }) {
       <ul className="divide-y divide-gray-200">
         {accountsData.map((account) => (
           <li key={account._id}>
-            <div className="px-4 py-4 sm:px-6">
-              <div className="flex items-center justify-between">
+            <div className="px-4 py-4 sm:px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div className="mb-2 sm:mb-0">
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">{account.name}</h3>
                   <p className="text-sm text-gray-500 capitalize">{account.type}</p>
                 </div>
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center sm:space-x-4 mt-2 sm:mt-0">
                   <span className="text-xl font-semibold text-gray-900">
                     ${account.balance.toFixed(2)}
                   </span>
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-2 mt-2 sm:mt-0">
                     <button
                       onClick={() => handleEdit(account)}
                       className="text-indigo-600 hover:text-indigo-900"

@@ -9,7 +9,7 @@ function Dashboard() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <AccountsSummary />
         <BudgetProgress />
       </div>
@@ -18,7 +18,7 @@ function Dashboard() {
         <BudgetSettings />
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <TransactionCharts />
         <RecentTransactions />
       </div>
