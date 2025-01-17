@@ -6,11 +6,16 @@ function AccountForm({ onSuccess, editData = null, onCancel }) {
   const [formData, setFormData] = useState({
     name: editData?.name || '',
     type: editData?.type || 'bank',
-    balance: editData?.balance || 0
+    balance: editData?.balance || '',
+    description: editData?.description || ''
   })
+
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setLoading(true)
+
     try {
       if (editData) {
         await accounts.update(editData._id, formData)
@@ -21,12 +26,27 @@ function AccountForm({ onSuccess, editData = null, onCancel }) {
       }
       onSuccess()
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error saving account')
+      toast.error(error.response?.data?.message || 'Something went wrong')
+    } finally {
+      setLoading(false)
     }
   }
 
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    // Convert balance to number if it's the balance field
+    const newValue = name === 'balance' ? 
+      value === '' ? '' : parseFloat(value) || 0 
+      : value
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: newValue
+    }))
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
           Account Name
@@ -34,10 +54,11 @@ function AccountForm({ onSuccess, editData = null, onCancel }) {
         <input
           type="text"
           id="name"
+          name="name"
           value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          onChange={handleChange}
           required
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
         />
       </div>
 
@@ -47,11 +68,12 @@ function AccountForm({ onSuccess, editData = null, onCancel }) {
         </label>
         <select
           id="type"
+          name="type"
           value={formData.type}
-          onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+          onChange={handleChange}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
         >
-          <option value="bank">Bank</option>
+          <option value="bank">Bank Account</option>
           <option value="cash">Cash</option>
           <option value="mobile">Mobile Money</option>
         </select>
@@ -59,17 +81,37 @@ function AccountForm({ onSuccess, editData = null, onCancel }) {
 
       <div>
         <label htmlFor="balance" className="block text-sm font-medium text-gray-700">
-          Initial Balance
+          Balance
         </label>
-        <input
-          type="number"
-          id="balance"
-          value={formData.balance}
-          onChange={(e) => setFormData({ ...formData, balance: Number(e.target.value) })}
+        <div className="mt-1 relative rounded-md shadow-sm">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <span className="text-gray-500 sm:text-sm">$</span>
+          </div>
+          <input
+            type="number"
+            step="0.01"
+            id="balance"
+            name="balance"
+            value={formData.balance}
+            onChange={handleChange}
+            required
+            className="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            placeholder="0.00"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+          Description (Optional)
+        </label>
+        <textarea
+          id="description"
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          rows={3}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          required
-          step="0.01"
-          disabled={editData}
         />
       </div>
 
@@ -83,9 +125,10 @@ function AccountForm({ onSuccess, editData = null, onCancel }) {
         </button>
         <button
           type="submit"
-          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700"
+          disabled={loading}
+          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
         >
-          {editData ? 'Update' : 'Create'} Account
+          {loading ? 'Saving...' : editData ? 'Update Account' : 'Create Account'}
         </button>
       </div>
     </form>
