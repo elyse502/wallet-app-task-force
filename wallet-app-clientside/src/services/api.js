@@ -50,4 +50,10 @@ export const transactions = {
   delete: (id) => api.delete(`/transactions/${id}`),
 }
 
+// Budget Settings API
+export const budgetSettings = {
+  get: () => api.get('/budget-settings'),
+  update: (data) => api.post('/budget-settings', data)
+}
+
 export default api 

@@ -11,6 +11,7 @@ const authRoutes = require('./routes/auth')
 const accountRoutes = require('./routes/accounts')
 const categoryRoutes = require('./routes/categories')
 const transactionRoutes = require('./routes/transactions')
+const budgetRoutes = require('./routes/budget')
 
 // Middleware imports
 const { errorHandler } = require('./middleware/errorHandler')
@@ -31,6 +32,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/accounts', accountRoutes)
 app.use('/api/categories', categoryRoutes)
 app.use('/api/transactions', transactionRoutes)
+app.use('/api/budget-settings', budgetRoutes)
 
 // Test route
 app.get("/", (req, res) => {

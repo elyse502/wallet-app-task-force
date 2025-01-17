@@ -1,155 +1,190 @@
 import { useState, useEffect } from 'react'
-import { useAuth } from '../../context/AuthContext'
-import { categories } from '../../services/api'
+import { categories, budgetSettings } from '../../services/api'
 import { toast } from 'react-toastify'
+import PageLoader from '../UI/PageLoader'
 
 function BudgetSettings() {
-  const { user, updateUser } = useAuth()
   const [budgetData, setBudgetData] = useState({
-    monthlyLimit: user?.budget?.monthlyLimit || 0,
-    categoryLimits: user?.budget?.categoryLimits || [],
-    alerts: {
-      enabled: user?.budget?.alerts?.enabled ?? true,
-      threshold: user?.budget?.alerts?.threshold || 80
-    }
+    monthlyLimit: 0,
+    categoryLimits: []
   })
   const [availableCategories, setAvailableCategories] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
-        const response = await categories.getAll()
-        setAvailableCategories(response.data)
+        // Fetch categories first
+        const categoriesResponse = await categories.getAll()
+        setAvailableCategories(categoriesResponse.data)
+
+        // Then fetch budget settings
+        const budgetResponse = await budgetSettings.get()
+        const data = budgetResponse.data
+
+        setBudgetData({
+          monthlyLimit: data?.monthlyLimit ?? 0,
+          categoryLimits: data?.categoryLimits ?? []
+        })
       } catch (error) {
-        toast.error('Failed to fetch categories')
+        console.error('Error fetching budget data:', error)
+        toast.error('Failed to load budget settings')
+      } finally {
+        setLoading(false)
       }
     }
-    fetchCategories()
+
+    fetchData()
   }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setSaving(true)
+
     try {
-      await updateUser({ budget: budgetData })
+      const response = await budgetSettings.update({
+        monthlyLimit: Number(budgetData.monthlyLimit),
+        categoryLimits: budgetData.categoryLimits.map(cl => ({
+          categoryId: cl.categoryId,
+          limit: Number(cl.limit)
+        }))
+      })
+
+      setBudgetData({
+        monthlyLimit: response.data.monthlyLimit,
+        categoryLimits: response.data.categoryLimits
+      })
+      
       toast.success('Budget settings updated successfully')
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update budget settings')
-      console.error('Budget update error:', error)
+      console.error('Error updating budget settings:', error)
+      toast.error('Failed to update budget settings')
+    } finally {
+      setSaving(false)
     }
   }
 
+  const handleCategoryLimitChange = (categoryId, limit) => {
+    setBudgetData(prev => ({
+      ...prev,
+      categoryLimits: prev.categoryLimits.map(cl => 
+        cl.categoryId === categoryId 
+          ? { ...cl, limit: limit === '' ? '' : Number(limit) }
+          : cl
+      )
+    }))
+  }
+
+  const addCategoryLimit = (categoryId) => {
+    if (!budgetData.categoryLimits.find(cl => cl.categoryId === categoryId)) {
+      setBudgetData(prev => ({
+        ...prev,
+        categoryLimits: [...prev.categoryLimits, { categoryId, limit: 0 }]
+      }))
+    }
+  }
+
+  const removeCategoryLimit = (categoryId) => {
+    setBudgetData(prev => ({
+      ...prev,
+      categoryLimits: prev.categoryLimits.filter(cl => cl.categoryId !== categoryId)
+    }))
+  }
+
+  if (loading) {
+    return <PageLoader />
+  }
+
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <h2 className="text-xl font-bold mb-6">Budget Settings</h2>
+    <div className="bg-white rounded-lg shadow p-6">
+      <h2 className="text-lg font-medium text-gray-900 mb-4">Budget Settings</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700">
             Monthly Budget Limit
           </label>
-          <div className="mt-1">
+          <div className="mt-1 relative rounded-md shadow-sm">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span className="text-gray-500 sm:text-sm">$</span>
+            </div>
             <input
               type="number"
               min="0"
+              step="0.01"
               value={budgetData.monthlyLimit}
-              onChange={(e) => setBudgetData({
-                ...budgetData,
-                monthlyLimit: parseFloat(e.target.value)
-              })}
-              className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              onChange={(e) => setBudgetData(prev => ({ 
+                ...prev, 
+                monthlyLimit: e.target.value === '' ? '' : Number(e.target.value)
+              }))}
+              className="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              placeholder="0.00"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Category Budgets
           </label>
-          <div className="mt-2 space-y-4">
-            {availableCategories.map((category) => (
-              <div key={category._id} className="flex items-center space-x-4">
-                <span className="w-1/3">{category.name}</span>
-                <input
-                  type="number"
-                  min="0"
-                  value={
-                    budgetData.categoryLimits.find(
-                      (cl) => cl.category === category._id
-                    )?.amount || ''
-                  }
-                  onChange={(e) => {
-                    const newLimits = [...budgetData.categoryLimits]
-                    const existingIndex = newLimits.findIndex(
-                      (cl) => cl.category === category._id
-                    )
-                    if (existingIndex >= 0) {
-                      newLimits[existingIndex].amount = parseFloat(e.target.value)
-                    } else {
-                      newLimits.push({
-                        category: category._id,
-                        amount: parseFloat(e.target.value)
-                      })
-                    }
-                    setBudgetData({ ...budgetData, categoryLimits: newLimits })
-                  }}
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  placeholder="Set budget"
-                />
-              </div>
-            ))}
+          <div className="space-y-4">
+            {availableCategories.map(category => {
+              const categoryLimit = budgetData.categoryLimits.find(cl => cl.categoryId === category._id)
+              return (
+                <div key={category._id} className="flex items-center space-x-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700">
+                      {category.name}
+                    </label>
+                    {categoryLimit ? (
+                      <div className="mt-1 relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <span className="text-gray-500 sm:text-sm">$</span>
+                        </div>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={categoryLimit.limit}
+                          onChange={(e) => handleCategoryLimitChange(category._id, e.target.value)}
+                          className="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          placeholder="0.00"
+                        />
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => addCategoryLimit(category._id)}
+                        className="mt-1 text-sm text-indigo-600 hover:text-indigo-500"
+                      >
+                        + Add budget limit
+                      </button>
+                    )}
+                  </div>
+                  {categoryLimit && (
+                    <button
+                      type="button"
+                      onClick={() => removeCategoryLimit(category._id)}
+                      className="text-red-600 hover:text-red-500"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              )
+            })}
           </div>
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between">
-            <label className="block text-sm font-medium text-gray-700">
-              Budget Alerts
-            </label>
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                checked={budgetData.alerts.enabled}
-                onChange={(e) => setBudgetData({
-                  ...budgetData,
-                  alerts: {
-                    ...budgetData.alerts,
-                    enabled: e.target.checked
-                  }
-                })}
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-              />
-              <span className="ml-2 text-sm text-gray-500">Enable alerts</span>
-            </div>
-          </div>
-          {budgetData.alerts.enabled && (
-            <div className="mt-2">
-              <label className="text-sm text-gray-500">
-                Alert when spending reaches
-                <input
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={budgetData.alerts.threshold}
-                  onChange={(e) => setBudgetData({
-                    ...budgetData,
-                    alerts: {
-                      ...budgetData.alerts,
-                      threshold: parseInt(e.target.value)
-                    }
-                  })}
-                  className="mx-2 w-16 text-center shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md"
-                />
-                % of budget
-              </label>
-            </div>
-          )}
         </div>
 
         <div className="flex justify-end">
           <button
             type="submit"
-            className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            disabled={saving}
+            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
-            Save Settings
+            {saving ? 'Saving...' : 'Save Budget Settings'}
           </button>
         </div>
       </form>
