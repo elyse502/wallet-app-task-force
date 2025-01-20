@@ -71,16 +71,18 @@ const deleteAccount = async (req, res) => {
       return res.status(404).json({ message: 'Account not found' })
     }
 
-    // Make sure user owns account
+    // Check if user owns the account
     if (account.user.toString() !== req.user._id.toString()) {
-      return res.status(401).json({ message: 'User not authorized' })
+      return res.status(401).json({ message: 'Not authorized' })
     }
 
-    await account.remove()
+    // Use findByIdAndDelete instead of remove()
+    await Account.findByIdAndDelete(req.params.id)
 
-    res.json({ message: 'Account removed' })
+    res.json({ message: 'Account deleted successfully' })
   } catch (error) {
-    res.status(400).json({ message: error.message })
+    console.error('Delete account error:', error)
+    res.status(500).json({ message: 'Error deleting account' })
   }
 }
 

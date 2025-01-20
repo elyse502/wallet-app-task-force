@@ -16,11 +16,14 @@ function AccountList({ accountsData, onAccountChange }) {
 
   const handleDelete = async (accountId) => {
     try {
-      await accounts.delete(accountId)
-      toast.success('Account deleted successfully')
-      onAccountChange()
+      const response = await accounts.delete(accountId)
+      if (response.data) {
+        toast.success('Account deleted successfully')
+        onAccountChange()
+      }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error deleting account')
+      console.error('Delete error:', error)
+      toast.error(error.response?.data?.message || 'Failed to delete account')
     }
     setShowDeleteConfirm(false)
     setSelectedAccount(null)

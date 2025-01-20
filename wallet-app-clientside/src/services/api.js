@@ -31,7 +31,12 @@ export const accounts = {
   getAll: () => api.get('/accounts'),
   create: (accountData) => api.post('/accounts', accountData),
   update: (id, accountData) => api.put(`/accounts/${id}`, accountData),
-  delete: (id) => api.delete(`/accounts/${id}`),
+  delete: (id) => api.delete(`/accounts/${id}`).then(response => {
+    if (response.status === 204) {
+      return { data: { message: 'Account deleted successfully' } }
+    }
+    return response
+  }),
 }
 
 // Categories API
