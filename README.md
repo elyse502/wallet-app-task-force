@@ -1,4 +1,4 @@
-# Personal Finance Tracker
+# Wallet Web Application
 
 A comprehensive web application for managing multiple financial accounts, tracking expenses, and monitoring budgets across different payment methods (bank accounts, mobile money, cash, etc.). Built with React.js, Node.js, Express, and MongoDB.
 
